@@ -1,0 +1,5 @@
+# Presentation layer
+
+HTTP controllers, CLI commands, request/response mappers.
+
+Calls Application use cases.

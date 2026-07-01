@@ -1,0 +1,5 @@
+# Infrastructure layer
+
+Adapters: Doctrine repositories, mail, Redis, external APIs.
+
+Implements interfaces defined in Domain/Application.
