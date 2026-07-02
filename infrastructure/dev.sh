@@ -79,6 +79,23 @@ cmd_up() {
   cmd_status
 }
 
+cmd_reload_nginx() {
+  log "Reloading nginx config (no container recreate)"
+  "${DC[@]}" exec nginx nginx -t
+  "${DC[@]}" exec nginx nginx -s reload
+  log "Nginx reloaded"
+}
+
+cmd_restart() {
+  local services=("$@")
+  if [[ ${#services[@]} -eq 0 ]]; then
+    services=(nginx php)
+  fi
+  log "Restarting: ${services[*]}"
+  "${DC[@]}" restart "${services[@]}"
+  cmd_status
+}
+
 cmd_down() {
   log "Stopping containers"
   "${DC[@]}" down
@@ -127,6 +144,8 @@ Usage: ./infrastructure/dev.sh <command>
 Commands:
   install     Build images, start containers, composer install, migrate
   up          Start containers
+  reload-nginx Reload nginx config after editing infrastructure/nginx/*
+  restart     Restart nginx + php (or: restart <service> ...)
   down        Stop containers
   reset       Stop containers and remove volumes
   logs [svc]  Follow logs (optional service name)
@@ -145,6 +164,8 @@ main() {
   case "${cmd}" in
     install) cmd_install "$@" ;;
     up) cmd_up "$@" ;;
+    reload-nginx) cmd_reload_nginx "$@" ;;
+    restart) cmd_restart "$@" ;;
     down) cmd_down "$@" ;;
     reset) cmd_reset "$@" ;;
     logs) cmd_logs "$@" ;;
