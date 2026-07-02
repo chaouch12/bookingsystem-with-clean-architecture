@@ -9,7 +9,7 @@ grumphp:
         enabled: true
         fix_by_default: false
     git_hook_variables:
-        EXEC_GRUMPHP_COMMAND: 'vendor/bin/grumphp'
+        EXEC_GRUMPHP_COMMAND: 'docker compose -f ../infrastructure/docker-compose.yml -p booking-system exec -T -e GRUMPHP_GIT_WORKING_DIR=/var/www/project -w /var/www/project php php'
     tasks:
         git_commit_message:
             allow_empty_message: false
@@ -20,6 +20,15 @@ grumphp:
             max_subject_width: 100
             matchers:
                 Must contain JIRA issue number: /DEV{1,3}-\d+/
+
+        phpcsfixer:
+            allow_risky: true
+            config: '.php-cs-fixer.dist.php'
+            config_contains_finder: true
+            verbose: true
+            diff: false
+            triggered_by: ['php']
+
         phpstan:
 #         level: 5              # levels: 0-8, where 0 is the loosest and 8 is the strictest
 #    phpunit:                # comment those lines if you ...

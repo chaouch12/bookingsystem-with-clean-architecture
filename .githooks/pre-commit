@@ -3,13 +3,8 @@
 set -eu
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-BACKEND_DIR="$REPO_ROOT/backend"
+GRUMPHP_DOCKER="$REPO_ROOT/scripts/grumphp-docker.sh"
 
-if [ -x /opt/homebrew/bin/php ]; then
-    PHP_BIN="/opt/homebrew/bin/php"
-else
-    PHP_BIN="$(command -v php)"
-fi
+DIFF="$(git -c diff.mnemonicprefix=false -c diff.noprefix=false --no-pager diff --raw -r -p -m -M --full-index --no-color --staged | cat)"
 
-cd "$BACKEND_DIR"
-"$PHP_BIN" vendor/bin/phpstan analyse -c phpstan.dist.neon --no-progress
+printf "%s\n" "$DIFF" | "$GRUMPHP_DOCKER" backend/vendor/bin/grumphp git:pre-commit --skip-success-output

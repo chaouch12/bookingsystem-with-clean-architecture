@@ -3,13 +3,8 @@
 set -eu
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-BACKEND_DIR="$REPO_ROOT/backend"
-
-if [ -x /opt/homebrew/bin/php ]; then
-    PHP_BIN="/opt/homebrew/bin/php"
-else
-    PHP_BIN="$(command -v php)"
-fi
+GRUMPHP_DOCKER="$REPO_ROOT/scripts/grumphp-docker.sh"
+CONTAINER_GIT_DIR="/var/www/project"
 GIT_USER="$(git config user.name)"
 GIT_EMAIL="$(git config user.email)"
 COMMIT_MSG_FILE="$1"
@@ -19,9 +14,8 @@ case "$COMMIT_MSG_FILE" in
     *) COMMIT_MSG_FILE="$REPO_ROOT/$COMMIT_MSG_FILE" ;;
 esac
 
+CONTAINER_COMMIT_MSG_FILE="${CONTAINER_GIT_DIR}${COMMIT_MSG_FILE#$REPO_ROOT}"
+
 DIFF="$(git -c diff.mnemonicprefix=false -c diff.noprefix=false --no-pager diff --raw -r -p -m -M --full-index --no-color --staged | cat)"
 
-export GRUMPHP_GIT_WORKING_DIR="$REPO_ROOT"
-
-cd "$BACKEND_DIR"
-printf "%s\n" "$DIFF" | "$PHP_BIN" vendor/bin/grumphp git:commit-msg "--git-user=$GIT_USER" "--git-email=$GIT_EMAIL" "$COMMIT_MSG_FILE"
+printf "%s\n" "$DIFF" | "$GRUMPHP_DOCKER" backend/vendor/bin/grumphp git:commit-msg "--git-user=$GIT_USER" "--git-email=$GIT_EMAIL" "$CONTAINER_COMMIT_MSG_FILE"
