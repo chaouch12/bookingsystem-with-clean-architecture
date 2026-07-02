@@ -10,6 +10,7 @@
         "doctrine/doctrine-bundle": "^3.2",
         "doctrine/doctrine-migrations-bundle": "^4.0",
         "doctrine/orm": "^3.6",
+        "phpro/grumphp": "^2.22",
         "symfony/console": "7.2.*",
         "symfony/dotenv": "7.2.*",
         "symfony/flex": "^2",
@@ -23,6 +24,7 @@
     "config": {
         "allow-plugins": {
             "php-http/discovery": true,
+            "phpro/grumphp": true,
             "symfony/flex": true,
             "symfony/runtime": true
         },
@@ -55,15 +57,20 @@
         "symfony/polyfill-php82": "*"
     },
     "scripts": {
+        "install-git-hooks": [
+            "sh ../scripts/install-git-hooks.sh"
+        ],
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
         },
         "post-install-cmd": [
-            "@auto-scripts"
+            "@auto-scripts",
+            "@install-git-hooks"
         ],
         "post-update-cmd": [
-            "@auto-scripts"
+            "@auto-scripts",
+            "@install-git-hooks"
         ]
     },
     "conflict": {
@@ -76,6 +83,8 @@
         }
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^13.2",
         "symfony/maker-bundle": "^1.67",
         "symfony/phpunit-bridge": "^8.1"

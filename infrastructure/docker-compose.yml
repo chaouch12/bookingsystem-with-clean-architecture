@@ -18,6 +18,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ../backend:/var/www/backend:cached
+      - ..:/var/www/project:cached
     environment:
       APP_ENV: dev
       DATABASE_URL: mysql://${MYSQL_USER:-booking}:${MYSQL_PASSWORD:-booking}@mysql:3306/${MYSQL_DATABASE:-booking_system}?serverVersion=8.4&charset=utf8mb4
