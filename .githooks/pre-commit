@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -eu
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+BACKEND_DIR="$REPO_ROOT/backend"
+
+if [ -x /opt/homebrew/bin/php ]; then
+    PHP_BIN="/opt/homebrew/bin/php"
+else
+    PHP_BIN="$(command -v php)"
+fi
+
+cd "$BACKEND_DIR"
+"$PHP_BIN" vendor/bin/phpstan analyse -c phpstan.dist.neon --no-progress

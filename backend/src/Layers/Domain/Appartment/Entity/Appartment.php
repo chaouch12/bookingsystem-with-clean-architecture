@@ -42,8 +42,8 @@ class Appartment extends Entity
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $lastBookedOnUtc = null;
 
+    /** @var list<Amenity> */
     #[ORM\Column(type: 'json')]
-    /** @var Amenity[] $amenities */
     private array $amenities;
 
     #[ORM\Embedded(class: Address::class)]
@@ -136,11 +136,17 @@ class Appartment extends Entity
         return $this;
     }
 
+    /**
+     * @return list<Amenity>
+     */
     public function getAmenities(): array
     {
         return $this->amenities;
     }
 
+    /**
+     * @param list<Amenity> $amenities
+     */
     public function setAmenities(array $amenities): static
     {
         $this->amenities = $amenities;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Layers\Domain\Appartment\Entity\Embeddable;
 
-use App\Layers\Domain\Appartment\Facade\Dto\AddressDto;
 use App\Util\Normalization\StreetNormalizer;
 use App\Util\Normalization\StreetNumberNormalizer;
 use Doctrine\ORM\Mapping as ORM;

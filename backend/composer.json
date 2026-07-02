@@ -57,6 +57,9 @@
         "symfony/polyfill-php82": "*"
     },
     "scripts": {
+        "install-git-hooks": [
+            "sh ../scripts/install-git-hooks.sh"
+        ],
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
