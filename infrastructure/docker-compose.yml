@@ -5,7 +5,10 @@ services:
       - "${APP_PORT:-8080}:80"
     volumes:
       - ../backend:/var/www/backend:cached
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/conf.d/performance.conf:/etc/nginx/conf.d/performance.conf:ro
+      - ./nginx/sites-enabled:/etc/nginx/sites-enabled:ro
     depends_on:
       php:
         condition: service_started
@@ -18,14 +21,20 @@ services:
 
   php:
     build:
-      context: ./php
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: php/Dockerfile
     volumes:
       - ../backend:/var/www/backend:cached
       - ..:/var/www/project:cached
+      - ./php/conf/xdebug.ini:/etc/php/xdebug.ini:ro
+      - ./php/conf/xdebug-cli.ini:/etc/php/xdebug-cli.ini:ro
+      - ./shared/setup_xdebug.sh:/setup_xdebug.sh:ro
     environment:
       APP_ENV: dev
+      XDEBUG_PORT: ${XDEBUG_PORT:-9030}
       DATABASE_URL: mysql://${MYSQL_USER:-booking}:${MYSQL_PASSWORD:-booking}@mysql:3306/${MYSQL_DATABASE:-booking_system}?serverVersion=8.4&charset=utf8mb4
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       mysql:
         condition: service_healthy
