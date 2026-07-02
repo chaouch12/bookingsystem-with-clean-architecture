@@ -4,28 +4,24 @@ declare(strict_types=1);
 
 namespace App\Layers\Domain\Appartment\Entity;
 
+use App\Common\Doctrine\Exception;
+use App\Entity\common\Entity;
 use App\Entity\common\SetTimestampTrait;
+use App\Layers\Domain\Appartment\Entity\Embeddable\Address;
 use App\Layers\Domain\Appartment\Enum\Amenity;
+use App\Layers\Domain\Appartment\Money;
 use App\Repository\AppartmentRepository;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AppartmentRepository::class)]
 #[ORM\Table(name: 'appartment')]
 #[ORM\HasLifecycleCallbacks]
-class Appartment
+class Appartment extends Entity
 {
     use SetTimestampTrait;
-
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(
-        options: [
-            'unsigned' => true,
-        ]
-    )]
-    private int $id;
 
     #[ORM\Column(length: 64)]
     private string $name;
@@ -33,14 +29,15 @@ class Appartment
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 6, scale: 2)]
-    private string $priceCurrency;
+    #[ORM\Embedded(class: Money::class, columnPrefix: 'price_')]
+    #[Assert\NotNull]
+    #[Assert\Valid]
+    private Money $price;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 6, scale: 2)]
-    private string $cleaningFeeAmount;
-
-    #[ORM\Column(length: 20)]
-    private string $cleaningFeeCurrency;
+    #[ORM\Embedded(class: Money::class, columnPrefix: 'cleaning_fee_')]
+    #[Assert\NotNull]
+    #[Assert\Valid]
+    private Money $cleaningFee;
 
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $lastBookedOnUtc = null;
@@ -49,40 +46,34 @@ class Appartment
     /** @var Amenity[] $amenities */
     private array $amenities;
 
+    #[ORM\Embedded(class: Address::class)]
+    #[Assert\NotNull]
+    #[Assert\Valid]
+    private Address $address;
+
     /**
-     * @param int|null $id
-     * @param string $name
-     * @param string|null $description
-     * @param string $priceCurrency
-     * @param string $cleaningFeeAmount
-     * @param string $cleaningFeeCurrency
-     * @param DateTimeImmutable|null $lastBookedOnUtc
      * @param Amenity[] $amenities
      */
-    public function __construct(?int $id, string $name, ?string $description, string $priceCurrency, string $cleaningFeeAmount, string $cleaningFeeCurrency, ?DateTimeImmutable $lastBookedOnUtc, array $amenities)
+    public function __construct(int $id, string $name, ?string $description, Money $price, Money $cleaningFee, ?DateTimeImmutable $lastBookedOnUtc, array $amenities, Address $address)
     {
-        $this->id = $id;
+        parent::__construct($id);
         $this->name = $name;
         $this->description = $description;
-        $this->priceCurrency = $priceCurrency;
-        $this->cleaningFeeAmount = $cleaningFeeAmount;
-        $this->cleaningFeeCurrency = $cleaningFeeCurrency;
+        $this->price = $price;
+        $this->cleaningFee = $cleaningFee;
         $this->lastBookedOnUtc = $lastBookedOnUtc;
         $this->amenities = $amenities;
+        $this->address = $address;
         $this->setTimestampsToNow();
     }
 
-
-    public function getId(): ?int
+    public function getId(): int
     {
+        if (!isset($this->id)) {
+            throw Exception::NonPersistedEntityException();
+        }
+
         return $this->id;
-    }
-
-    public function setId(int $id): static
-    {
-        $this->id = $id;
-
-        return $this;
     }
 
     public function getName(): ?string
@@ -109,38 +100,26 @@ class Appartment
         return $this;
     }
 
-    public function getPriceCurrency(): ?string
+    public function getPrice(): Money
     {
-        return $this->priceCurrency;
+        return $this->price;
     }
 
-    public function setPriceCurrency(string $priceCurrency): static
+    public function setPrice(Money $price): static
     {
-        $this->priceCurrency = $priceCurrency;
+        $this->price = $price;
 
         return $this;
     }
 
-    public function getCleaningFeeAmount(): ?string
+    public function getCleaningFee(): Money
     {
-        return $this->cleaningFeeAmount;
+        return $this->cleaningFee;
     }
 
-    public function setCleaningFeeAmount(string $cleaningFeeAmount): static
+    public function setCleaningFee(Money $cleaningFee): static
     {
-        $this->cleaningFeeAmount = $cleaningFeeAmount;
-
-        return $this;
-    }
-
-    public function getCleaningFeeCurrency(): ?string
-    {
-        return $this->cleaningFeeCurrency;
-    }
-
-    public function setCleaningFeeCurrency(string $cleaningFeeCurrency): static
-    {
-        $this->cleaningFeeCurrency = $cleaningFeeCurrency;
+        $this->cleaningFee = $cleaningFee;
 
         return $this;
     }
@@ -165,6 +144,18 @@ class Appartment
     public function setAmenities(array $amenities): static
     {
         $this->amenities = $amenities;
+
+        return $this;
+    }
+
+    public function getAddress(): Address
+    {
+        return $this->address;
+    }
+
+    public function setAddress(Address $address): static
+    {
+        $this->address = $address;
 
         return $this;
     }
