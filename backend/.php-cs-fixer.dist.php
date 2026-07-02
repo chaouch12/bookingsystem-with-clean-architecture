@@ -3,7 +3,7 @@
 use PhpCsFixer\Config;
 
 $finder = (new PhpCsFixer\Finder())
-    ->in(__DIR__.'/src')
+    ->in(__DIR__.'/backend/src')
     ->exclude('var')
 ;
 

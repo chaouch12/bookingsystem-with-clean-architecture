@@ -24,7 +24,7 @@ class Appartment extends Entity
     use SetTimestampTrait;
 
     #[ORM\Column(length: 64)  ]
-    private string $name;
+    private string  $name;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
