@@ -6,8 +6,8 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 GRUMPHP_DOCKER="$REPO_ROOT/scripts/grumphp-docker.sh"
 
 if ! "$GRUMPHP_DOCKER" vendor/bin/grumphp --version >/dev/null 2>&1; then
-    printf '%s\n' "Git hook error: booking-system PHP container is not running." >&2
-    printf '%s\n' "Start it with: cd infrastructure && docker compose -p booking-system up -d php" >&2
+    printf '%s\n' "Git hook error: booking-system PHP container is not running or GrumPHP is unreachable." >&2
+    printf '%s\n' "Start it with: ./infrastructure/dev.sh up" >&2
     exit 1
 fi
 
