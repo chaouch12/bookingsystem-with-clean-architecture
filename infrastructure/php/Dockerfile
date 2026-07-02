@@ -22,7 +22,11 @@ RUN chmod +x /docker-entrypoint.sh \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* \
   && usermod -u 1000 www-data \
-  && groupmod -g 1000 www-data
+  && groupmod -g 1000 www-data \
+  && mv /usr/local/bin/php /usr/local/bin/php-real
+
+COPY php/docker-php-cli /usr/local/bin/php
+RUN chmod +x /usr/local/bin/php
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 

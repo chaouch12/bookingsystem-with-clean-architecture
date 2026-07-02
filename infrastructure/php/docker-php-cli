@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# CLI only: keep composer, cs-fixer, grumphp fast. FPM is unaffected (uses php-fpm).
+if [[ -z "${XDEBUG_SESSION:-}" && -z "${XDEBUG_TRIGGER:-}" && -z "${XDEBUG_MODE:-}" ]]; then
+  export XDEBUG_MODE=off
+fi
+
+exec /usr/local/bin/php-real "$@"

@@ -14,6 +14,7 @@ if [ -f "$ENV_FILE" ]; then
     COMPOSE_ARGS+=(--env-file "$ENV_FILE")
 fi
 
+# XDEBUG_MODE=off only for this CLI process (git hooks). FPM/web debugging is unchanged.
 exec docker compose "${COMPOSE_ARGS[@]}" exec -T \
     -e XDEBUG_MODE=off \
     -e GRUMPHP_GIT_WORKING_DIR="$CONTAINER_GIT_DIR" \
