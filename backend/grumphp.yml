@@ -1,0 +1,39 @@
+grumphp:
+    stop_on_failure: false
+    ignore_unstaged_changes: false
+    hide_circumvention_tip: true
+    process_timeout: 60
+    fixer:
+        enabled: true
+        fix_by_default: false
+    git_hook_variables:
+        EXEC_GRUMPHP_COMMAND: 'vendor/bin/grumphp'
+    tasks:
+        git_commit_message:
+            allow_empty_message: false
+            enforce_capitalized_subject: true
+            enforce_no_subject_punctuations: false
+            enforce_no_subject_trailing_period: true
+            enforce_single_lined_subject: true
+            max_subject_width: 100
+            matchers:
+                Must contain JIRA issue number: /DEV{1,3}-\d+/
+
+        #        phpcs:
+        #            standard: PSR12
+
+        phpcsfixer:
+            allow_risky: true
+            cache_file: ~
+            config: '.php-cs-fixer.dist.php'
+            using_cache: ~
+            config_contains_finder: true
+            verbose: true
+            diff: false
+            triggered_by: [ 'php' ]
+        phpstan:
+         level: 5              # levels: 0-8, where 0 is the loosest and 8 is the strictest
+#    phpunit:                # comment those lines if you ...
+#      always_execute: true  # ... don't use PHPUnit in your project
+#    securitychecker:
+#      run_always: true
