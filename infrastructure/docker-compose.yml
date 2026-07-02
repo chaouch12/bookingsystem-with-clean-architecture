@@ -10,7 +10,11 @@ services:
       php:
         condition: service_started
     networks:
-      - booking
+      booking:
+      localdev:
+        ipv4_address: ${BOOKING_NGINX_LOCALDEV_IP:-192.168.250.210}
+        aliases:
+          - booking-system-nginx
 
   php:
     build:
@@ -69,3 +73,6 @@ volumes:
 networks:
   booking:
     driver: bridge
+  localdev:
+    external: true
+    name: ${LOCALDEV_NETWORK:-dev_localdev}

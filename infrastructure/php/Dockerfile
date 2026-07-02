@@ -22,3 +22,8 @@ WORKDIR /var/www/backend
 RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
 
 COPY php.ini /usr/local/etc/php/conf.d/99-booking-system.ini
+COPY docker-entrypoint.sh /usr/local/bin/booking-entrypoint.sh
+RUN chmod +x /usr/local/bin/booking-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/booking-entrypoint.sh"]
+CMD ["php-fpm"]
