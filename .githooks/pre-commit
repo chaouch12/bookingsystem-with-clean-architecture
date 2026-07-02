@@ -5,6 +5,11 @@ set -eu
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 GRUMPHP_DOCKER="$REPO_ROOT/scripts/grumphp-docker.sh"
 
-DIFF="$(git -c diff.mnemonicprefix=false -c diff.noprefix=false --no-pager diff --raw -r -p -m -M --full-index --no-color --staged | cat)"
+if ! "$GRUMPHP_DOCKER" vendor/bin/grumphp --version >/dev/null 2>&1; then
+    printf '%s\n' "Git hook error: booking-system PHP container is not running." >&2
+    printf '%s\n' "Start it with: cd infrastructure && docker compose -p booking-system up -d php" >&2
+    exit 1
+fi
 
-printf "%s\n" "$DIFF" | "$GRUMPHP_DOCKER" backend/vendor/bin/grumphp git:pre-commit --skip-success-output
+# GrumPHP reads staged files from the mounted .git directory inside the container.
+"$GRUMPHP_DOCKER" vendor/bin/grumphp git:pre-commit --no-interaction

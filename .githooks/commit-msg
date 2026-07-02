@@ -16,6 +16,8 @@ esac
 
 CONTAINER_COMMIT_MSG_FILE="${CONTAINER_GIT_DIR}${COMMIT_MSG_FILE#$REPO_ROOT}"
 
-DIFF="$(git -c diff.mnemonicprefix=false -c diff.noprefix=false --no-pager diff --raw -r -p -m -M --full-index --no-color --staged | cat)"
-
-printf "%s\n" "$DIFF" | "$GRUMPHP_DOCKER" backend/vendor/bin/grumphp git:commit-msg "--git-user=$GIT_USER" "--git-email=$GIT_EMAIL" "$CONTAINER_COMMIT_MSG_FILE"
+"$GRUMPHP_DOCKER" vendor/bin/grumphp git:commit-msg \
+    --no-interaction \
+    "--git-user=$GIT_USER" \
+    "--git-email=$GIT_EMAIL" \
+    "$CONTAINER_COMMIT_MSG_FILE"

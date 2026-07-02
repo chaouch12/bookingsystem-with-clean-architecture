@@ -10,5 +10,6 @@ CONTAINER_BACKEND_DIR="/var/www/project/backend"
 
 exec docker compose -f "$COMPOSE_FILE" -p "$COMPOSE_PROJECT" exec -T \
     -e GRUMPHP_GIT_WORKING_DIR="$CONTAINER_GIT_DIR" \
-    -w "$CONTAINER_GIT_DIR" \
-    php php "$@"
+    -e GRUMPHP_PROJECT_DIR="$CONTAINER_BACKEND_DIR" \
+    -w "$CONTAINER_BACKEND_DIR" \
+    php php "$@" < /dev/null
