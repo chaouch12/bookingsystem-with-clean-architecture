@@ -13,7 +13,8 @@ if [[ -f "${ROOT_DIR}/.env" ]]; then
 fi
 
 COMPOSE_FILE="${INFRA_DIR}/docker-compose.yml"
-DC=(docker compose -f "${COMPOSE_FILE}")
+ENV_FILE="${ROOT_DIR}/.env"
+DC=(docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}")
 
 log() {
   printf '\n==> %s\n' "$*"
@@ -110,10 +111,11 @@ cmd_test() {
 
 cmd_status() {
   log "Service URLs"
-  echo "  API (nginx):  http://${APP_DOMAIN:-localhost}:${APP_PORT:-8080}"
-  echo "  Mailpit UI:   http://localhost:${MAILPIT_UI_PORT:-8025}"
-  echo "  MySQL:        localhost:${MYSQL_PORT:-3306}"
-  echo "  Redis:        localhost:${REDIS_PORT:-6379}"
+  echo "  API (gateway): http://${APP_DOMAIN:-localhost}"
+  echo "  API (direct):  http://${APP_DOMAIN:-localhost}:${APP_PORT:-8080}"
+  echo "  Mailpit UI:    http://localhost:${MAILPIT_UI_PORT:-8025}"
+  echo "  MySQL:         localhost:${MYSQL_PORT:-3306}"
+  echo "  Redis:         localhost:${REDIS_PORT:-6379}"
   echo ""
   "${DC[@]}" ps
 }
