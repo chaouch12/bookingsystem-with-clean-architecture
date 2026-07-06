@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Presentation\Http\Controller\Request;
+namespace App\src\Layers\Presentation\Http\Controller\Request;
 
 use App\Layers\Domain\Appartment\Enum\Currency;
 use DateTimeInterface;

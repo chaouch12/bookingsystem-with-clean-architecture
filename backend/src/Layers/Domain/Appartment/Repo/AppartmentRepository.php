@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Repository;
+declare(strict_types=1);
+
+namespace App\src\Layers\Domain\Appartment\Repo;
 
 use App\Layers\Domain\Appartment\Entity\Appartment;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

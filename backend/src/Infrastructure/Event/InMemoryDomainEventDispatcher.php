@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Event;
 
-use App\Application\Shared\Event\DomainEventDispatcher;
 use App\Layers\Domain\Shared\Event\DomainEvent;
+use App\src\Layers\Application\Shared\Event\DomainEventDispatcher;
 
 final class InMemoryDomainEventDispatcher implements DomainEventDispatcher
 {

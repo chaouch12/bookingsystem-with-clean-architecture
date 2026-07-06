@@ -10,7 +10,7 @@ use App\Entity\common\SetTimestampTrait;
 use App\Layers\Domain\Appartment\Entity\Embeddable\Address;
 use App\Layers\Domain\Appartment\Enum\Amenity;
 use App\Layers\Domain\Appartment\Money;
-use App\Repository\AppartmentRepository;
+use App\src\Layers\Domain\Appartment\Repo\AppartmentRepository;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
