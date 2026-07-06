@@ -19,7 +19,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: AppartmentRepository::class)]
 #[ORM\Table(name: 'appartment')]
 #[ORM\HasLifecycleCallbacks]
-class Appartment extends BaseEntity
+final class Appartment extends BaseEntity
 {
     use SetTimestampTrait;
 
@@ -76,7 +76,7 @@ class Appartment extends BaseEntity
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
