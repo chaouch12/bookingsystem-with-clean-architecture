@@ -6,8 +6,11 @@ namespace App\Layers\Domain\Users;
 
 use App\Entity\common\Entity;
 use App\Entity\common\SetTimestampTrait;
+use App\Layers\Domain\Shared\Event\RecordsDomainEvents;
 use App\Layers\Domain\Users\Enum\UserRoleType;
 use App\Layers\Domain\Users\Enum\UserStatusType;
+use App\Layers\Domain\Users\Event\UserRegistered;
+use App\Layers\Domain\Users\Event\UserRoleChanged;
 use App\Layers\Domain\Users\Repository\UserRepository;
 use App\Layers\Domain\Users\ValueObject\Email;
 use App\Layers\Domain\Users\ValueObject\HashedPassword;
@@ -22,6 +25,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
     ORM\HasLifecycleCallbacks]
 final class User extends Entity implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    use RecordsDomainEvents;
     use SetTimestampTrait;
 
     #[ORM\Embedded(class: HashedPassword::class, columnPrefix: false)]
@@ -64,7 +68,10 @@ final class User extends Entity implements UserInterface, PasswordAuthenticatedU
 
     public static function create(HashedPassword $password, UserStatusType $status, UserRoleType $role, Email $email, Name $name): self
     {
-        return new self($password, $status, $role, $email, $name);
+        $user = new self($password, $status, $role, $email, $name);
+        $user->recordDomainEvent(new UserRegistered($user->getEmail(), $user->getName(), $user->getRole()));
+
+        return $user;
     }
 
     public function setId(int $id): void
@@ -94,7 +101,18 @@ final class User extends Entity implements UserInterface, PasswordAuthenticatedU
 
     public function setRole(UserRoleType $role): void
     {
+        $this->changeRole($role);
+    }
+
+    public function changeRole(UserRoleType $role): void
+    {
+        if ($this->role === $role) {
+            return;
+        }
+
+        $oldRole = $this->role;
         $this->role = $role;
+        $this->recordDomainEvent(new UserRoleChanged($oldRole, $role));
     }
 
     public function getStatus(): ?UserStatusType
@@ -116,6 +134,9 @@ final class User extends Entity implements UserInterface, PasswordAuthenticatedU
         return array_unique($roles);
     }
 
+    /**
+     * @return lowercase-string&non-empty-string
+     */
     public function getEmail(): string
     {
         return $this->email->value;
@@ -151,8 +172,11 @@ final class User extends Entity implements UserInterface, PasswordAuthenticatedU
         // TODO: Implement eraseCredentials() method.
     }
 
+    /**
+     * @return lowercase-string&non-empty-string
+     */
     public function getUserIdentifier(): string
     {
-        return (string) $this->id;
+        return $this->getEmail();
     }
 }
