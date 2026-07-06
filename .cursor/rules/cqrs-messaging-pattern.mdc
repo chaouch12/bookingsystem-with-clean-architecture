@@ -1,0 +1,44 @@
+---
+description: CQRS messaging conventions for command/query requests and handlers.
+globs:
+  - "backend/src/Layers/Application/**/*.php"
+alwaysApply: false
+---
+
+# CQRS Messaging Pattern
+
+Use CQRS-style messaging conventions in the application layer.
+
+## Commands
+
+- Commands represent intent to change state.
+- Name them `*Command`.
+- Handle them in `*CommandHandler`.
+- Commands should be immutable request objects.
+
+## Queries
+
+- Queries represent read requests.
+- Name them `*Query`.
+- Handle them in `*QueryHandler`.
+- Queries should return read DTOs, lists, or projections.
+- Query handlers may use DBAL/raw SQL or dedicated read repositories for flat response models.
+- Do not force query handlers through aggregate repositories when the use case only needs a flat read model.
+
+## Handler Rules
+
+- Command handlers use repositories + domain methods + save + domain event dispatch.
+- Query handlers use read-optimized access and should not mutate state.
+- Keep handlers focused on one use case.
+
+## Return Rules
+
+- Prefer `Result` / `ResultWithValue`.
+- Expected business failures should be returned, not thrown.
+
+## Read/Write Access Split
+
+- Command side should use aggregate repositories.
+- Query side should prefer read-optimized access.
+- If query complexity grows, introduce dedicated read repositories instead of reusing aggregate repositories blindly.
+- Do not hydrate full Doctrine aggregates on query side just to flatten them into response DTOs.

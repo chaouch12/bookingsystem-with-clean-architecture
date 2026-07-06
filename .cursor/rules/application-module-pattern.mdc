@@ -1,0 +1,46 @@
+---
+description: Application layer CQRS module pattern for commands, queries, and handlers.
+globs:
+  - "backend/src/Layers/Application/**/*.php"
+alwaysApply: false
+---
+
+# Application Module Pattern
+
+Use the application layer for use-case orchestration only.
+
+## Rules
+
+- Organize features by module, then by command/query use case.
+- Commands change state.
+- Queries read state.
+- One command/query should have one handler.
+- Handlers should orchestrate, not hold deep business rules.
+- Controllers should delegate to application handlers instead of calling repositories directly.
+
+## Preferred Structure
+
+```text
+backend/src/Layers/Application/
+  Booking/
+    Commands/
+      CreateBooking/
+      ConfirmBooking/
+    Queries/
+      GetBookingById/
+      ListBookingsForApartment/
+  Shared/
+    Messaging/
+```
+
+## Return Rules
+
+- Command handlers should return `Result` or `ResultWithValue<scalar|dto>`.
+- Query handlers should return `ResultWithValue<read-dto|list<read-dto>>`.
+- Do not return aggregates from application handlers unless there is a strong reason.
+
+## Dependency Rules
+
+- Application handlers may depend on repositories, domain services, and event dispatchers.
+- Application handlers should not contain persistence details beyond orchestration.
+- Application handlers should dispatch domain events after persistence.

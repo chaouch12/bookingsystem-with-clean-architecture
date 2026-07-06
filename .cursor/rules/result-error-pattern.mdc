@@ -1,0 +1,29 @@
+---
+description: Result and Error usage for expected business/application outcomes.
+globs:
+  - "backend/src/Layers/Application/**/*.php"
+  - "backend/src/Layers/Domain/**/*.php"
+alwaysApply: false
+---
+
+# Result/Error Pattern
+
+Use `Result`, `ResultWithValue`, and typed `Error` for expected business/application outcomes.
+
+## Rules
+
+- Expected failures should return result failures.
+- Unexpected failures may still throw exceptions.
+- Prefer typed error factories such as `BookingErrors::overlap()`.
+- Command handlers should not throw exceptions for normal not-found/conflict cases if the use case can return a result instead.
+
+## Examples
+
+- overlap
+- invalid state transition
+- entity not found in normal command/query flow
+
+## Avoid
+
+- bare `RuntimeException` for expected business outcomes
+- returning raw strings or booleans instead of typed results when the use case needs failure context

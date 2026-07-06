@@ -1,0 +1,35 @@
+---
+description: Doctrine entity and aggregate modeling rules for this project.
+globs:
+  - "backend/src/Layers/Domain/**/*.php"
+  - "backend/migrations/*.php"
+alwaysApply: false
+---
+
+# Doctrine Entity Pattern
+
+Doctrine entities in this project are domain aggregates and should be modeled with aggregate discipline.
+
+## Rules
+
+- Put invariants in constructors, named constructors, or explicit aggregate methods.
+- Prefer value objects over primitive obsession.
+- Use enums for closed sets.
+- Record domain events inside aggregates, dispatch them outside.
+- Use ids across aggregate boundaries unless a real object association is required.
+- Add database foreign keys in migrations even when aggregate references are stored as scalar ids.
+
+## Avoid
+
+- generic setter-driven models for meaningful transitions
+- bidirectional associations by default
+- controllers mutating entities directly
+- leaking ORM concerns into application flow
+
+## Persistence Rules
+
+- keep migration schema aligned with aggregate fields
+- if lifecycle timestamps/statuses are added in entity, update migration accordingly
+- use repository queries for overlap/existence checks that require DB access
+- use Doctrine aggregate repositories primarily on the write side
+- prefer DBAL/raw SQL or dedicated read repositories on the query side when returning flat DTOs

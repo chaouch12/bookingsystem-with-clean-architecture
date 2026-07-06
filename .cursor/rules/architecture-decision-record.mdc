@@ -1,0 +1,28 @@
+---
+description: Keep architecture decisions explicit and documented when introducing new patterns or changing module boundaries.
+globs:
+  - "docs/**/*.md"
+  - "backend/src/**/*.php"
+alwaysApply: false
+---
+
+# Architecture Decision Record
+
+When adding a new architecture pattern or changing an existing one, preserve explicit decision history.
+
+## Rules
+
+- Document meaningful architecture choices in `docs/`.
+- Prefer one focused document per topic rather than one giant architecture file.
+- Update docs when code changes invalidate previous architecture guidance.
+- Explain not just what was chosen, but why and what tradeoffs were rejected.
+
+## Decisions That Must Be Documented
+
+- CQRS/messaging changes
+- aggregate boundary changes
+- eventing patterns
+- repository/interface direction
+- exception/result strategy
+- Doctrine modeling rules
+- framework integration decisions such as Messenger or EventDispatcher usage
