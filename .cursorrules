@@ -1,0 +1,7 @@
+Prefer domain/application-specific exceptions over generic `RuntimeException`.
+
+Rules:
+- Use `NotFoundException` for missing entities/resources.
+- Use conflict-specific exceptions for state collisions or availability problems.
+- Introduce a named custom exception when the failure has business meaning.
+- Do not throw bare `RuntimeException` from application services for expected business/application errors.
