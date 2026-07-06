@@ -8,6 +8,11 @@ use App\Layers\Domain\Shared\Error;
 
 final class BookingErrors
 {
+    public static function overlap(): Error
+    {
+        return new Error('Booking.Overlap', 'Appartment is not available for the selected period.');
+    }
+
     public static function notPending(): Error
     {
         return new Error('Booking.NotPending', 'Booking is not in reserved status.');

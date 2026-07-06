@@ -2,18 +2,24 @@
 
 declare(strict_types=1);
 
-namespace App\src\Layers\Application\Booking\CreateBooking;
+namespace App\Layers\Application\Booking\CreateBooking;
 
-use App\Common\Exception\ConflictException;
-use App\Common\Exception\NotFoundException;
+use App\Layers\Application\Shared\Event\DomainEventDispatcher;
+use App\Layers\Application\Shared\Messaging\CommandHandler;
+use App\Layers\Domain\Appartment\AppartmentErrors;
+use App\Layers\Domain\Appartment\Repo\AppartmentRepository;
+use App\Layers\Domain\Booking\BookingErrors;
 use App\Layers\Domain\Booking\Entity\Booking;
 use App\Layers\Domain\Booking\Repository\BookingRepository;
 use App\Layers\Domain\Booking\Service\BookingPricingService;
+use App\Layers\Domain\Shared\ResultWithValue;
 use App\Layers\Domain\Users\Repository\UserRepository;
-use App\src\Layers\Application\Shared\Event\DomainEventDispatcher;
-use App\src\Layers\Domain\Appartment\Repo\AppartmentRepository;
+use App\Layers\Domain\Users\UserErrors;
 
-final readonly class CreateBookingService
+/**
+ * @implements CommandHandler<CreateBookingCommand, ResultWithValue<int>>
+ */
+final readonly class CreateBookingCommandHandler implements CommandHandler
 {
     public function __construct(
         private AppartmentRepository $appartmentRepository,
@@ -24,23 +30,27 @@ final readonly class CreateBookingService
     ) {
     }
 
-    public function handle(CreateBookingCommand $command): Booking
+    /**
+     * @return ResultWithValue<int>
+     */
+    public function handle(object $command): ResultWithValue
     {
         $appartment = $this->appartmentRepository->find($command->appartmentId);
 
         if ($appartment === null) {
-            throw NotFoundException::forResource('Appartment', $command->appartmentId);
+            return ResultWithValue::failureWithError(AppartmentErrors::notFound());
         }
 
         $user = $this->userRepository->find($command->guestUserId);
 
         if ($user === null) {
-            throw NotFoundException::forResource('User', $command->guestUserId);
+            return ResultWithValue::failureWithError(UserErrors::notFound());
         }
 
         if ($this->bookingRepository->existsOverlapForAppartment($appartment->getId(), $command->period)) {
-            throw ConflictException::because('Appartment is not available for the selected period.');
+            return ResultWithValue::failureWithError(BookingErrors::overlap());
         }
+
         $pricingDetails = $this->bookingPricingService->calculatePrice($appartment, $command->period);
 
         $booking = Booking::create(
@@ -57,6 +67,6 @@ final readonly class CreateBookingService
         $this->bookingRepository->save($booking, true);
         $this->domainEventDispatcher->dispatch(...$booking->releaseDomainEvents());
 
-        return $booking;
+        return ResultWithValue::successWithValue($booking->getId());
     }
 }

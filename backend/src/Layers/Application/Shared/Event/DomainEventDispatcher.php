@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\src\Layers\Application\Shared\Event;
+namespace App\Layers\Application\Shared\Event;
 
 use App\Layers\Domain\Shared\Event\DomainEvent;
 
