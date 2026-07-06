@@ -6,8 +6,8 @@ namespace App\Layers\Domain\Booking\Enum;
 
 enum BookingStatus: string
 {
-    case PENDING = 'pending';
+    case RESERVED = 'reserved';
     case CONFIRMED = 'confirmed';
+    case REJECTED = 'rejected';
     case CANCELLED = 'cancelled';
-    case COMPLETED = 'completed';
 }

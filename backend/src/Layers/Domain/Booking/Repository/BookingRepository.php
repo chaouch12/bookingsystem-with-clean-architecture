@@ -36,7 +36,7 @@ final class BookingRepository extends ServiceEntityRepository
             ->andWhere('booking.period.checkOut > :checkIn')
             ->setParameter('appartmentId', $appartmentId)
             ->setParameter('blockingStatuses', [
-                BookingStatus::PENDING->value,
+                BookingStatus::RESERVED->value,
                 BookingStatus::CONFIRMED->value,
             ])
             ->setParameter('checkIn', $period->checkIn)

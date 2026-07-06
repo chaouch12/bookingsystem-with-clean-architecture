@@ -7,12 +7,18 @@ namespace App\Layers\Domain\Booking\Entity;
 use App\Entity\common\Entity;
 use App\Entity\common\SetTimestampTrait;
 use App\Layers\Domain\Appartment\Money;
+use App\Layers\Domain\Booking\BookingErrors;
 use App\Layers\Domain\Booking\Enum\BookingStatus;
+use App\Layers\Domain\Booking\Event\BookingCancelled;
+use App\Layers\Domain\Booking\Event\BookingConfirmed;
 use App\Layers\Domain\Booking\Event\BookingCreated;
+use App\Layers\Domain\Booking\Event\BookingRejected;
 use App\Layers\Domain\Booking\Repository\BookingRepository;
 use App\Layers\Domain\Booking\ValueObject\BookingPeriod;
 use App\Layers\Domain\Booking\ValueObject\GuestCount;
 use App\Layers\Domain\Shared\Event\RecordsDomainEvents;
+use App\Layers\Domain\Shared\Result;
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: BookingRepository::class)]
@@ -50,6 +56,15 @@ final class Booking extends Entity
     #[ORM\Embedded(class: Money::class, columnPrefix: 'total_price_')]
     private Money $totalPrice;
 
+    #[ORM\Column(name: 'confirmed_on_utc', nullable: true)]
+    private ?DateTimeImmutable $confirmedOnUtc = null;
+
+    #[ORM\Column(name: 'rejected_on_utc', nullable: true)]
+    private ?DateTimeImmutable $rejectedOnUtc = null;
+
+    #[ORM\Column(name: 'cancelled_on_utc', nullable: true)]
+    private ?DateTimeImmutable $cancelledOnUtc = null;
+
     private function __construct(
         int $appartmentId,
         int $guestUserId,
@@ -65,7 +80,7 @@ final class Booking extends Entity
         $this->guestUserId = $guestUserId;
         $this->period = $period;
         $this->guestCount = $guestCount;
-        $this->status = BookingStatus::PENDING;
+        $this->status = BookingStatus::RESERVED;
         $this->priceForPeriod = $priceForPeriod;
         $this->cleaningFee = $cleaningFee;
         $this->amenitiesUpCharge = $amenitiesUpCharge;
@@ -100,6 +115,11 @@ final class Booking extends Entity
     public function getAppartmentId(): int
     {
         return $this->appartmentId;
+    }
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
     }
 
     public function getGuestUserId(): int
@@ -140,5 +160,64 @@ final class Booking extends Entity
     public function getTotalPrice(): Money
     {
         return $this->totalPrice;
+    }
+
+    public function getConfirmedOnUtc(): ?DateTimeImmutable
+    {
+        return $this->confirmedOnUtc;
+    }
+
+    public function getRejectedOnUtc(): ?DateTimeImmutable
+    {
+        return $this->rejectedOnUtc;
+    }
+
+    public function getCancelledOnUtc(): ?DateTimeImmutable
+    {
+        return $this->cancelledOnUtc;
+    }
+
+    public function confirm(DateTimeImmutable $utcNow): Result
+    {
+        if ($this->status !== BookingStatus::RESERVED) {
+            return Result::failure(BookingErrors::notPending());
+        }
+
+        $this->status = BookingStatus::CONFIRMED;
+        $this->confirmedOnUtc = $utcNow;
+        $this->recordDomainEvent(new BookingConfirmed($this->getId()));
+
+        return Result::success();
+    }
+
+    public function reject(DateTimeImmutable $utcNow): Result
+    {
+        if ($this->status !== BookingStatus::RESERVED) {
+            return Result::failure(BookingErrors::notPending());
+        }
+
+        $this->status = BookingStatus::REJECTED;
+        $this->rejectedOnUtc = $utcNow;
+        $this->recordDomainEvent(new BookingRejected($this->getId()));
+
+        return Result::success();
+    }
+
+    public function cancel(DateTimeImmutable $utcNow): Result
+    {
+        if ($this->status !== BookingStatus::CONFIRMED) {
+            return Result::failure(BookingErrors::notConfirmed());
+        }
+
+        $currentDate = $utcNow->setTime(0, 0);
+        if ($currentDate > $this->period->checkIn) {
+            return Result::failure(BookingErrors::alreadyStarted());
+        }
+
+        $this->status = BookingStatus::CANCELLED;
+        $this->cancelledOnUtc = $utcNow;
+        $this->recordDomainEvent(new BookingCancelled($this->getId()));
+
+        return Result::success();
     }
 }
