@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Layers\Domain\Appartment\Entity;
 
-use App\Common\Doctrine\Exception;
-use App\Entity\common\Entity;
+use App\Common\Doctrine\NonPersistedEntityException;
+use App\Entity\common\Entity as BaseEntity;
 use App\Entity\common\SetTimestampTrait;
 use App\Layers\Domain\Appartment\Entity\Embeddable\Address;
 use App\Layers\Domain\Appartment\Enum\Amenity;
@@ -19,12 +19,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: AppartmentRepository::class)]
 #[ORM\Table(name: 'appartment')]
 #[ORM\HasLifecycleCallbacks]
-class Appartment extends Entity
+final class Appartment extends BaseEntity
 {
     use SetTimestampTrait;
 
-    #[ORM\Column(length: 64)  ]
-    private string  $name;
+    #[ORM\Column(length: 64)]
+    private string $name;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
@@ -42,7 +42,7 @@ class Appartment extends Entity
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $lastBookedOnUtc = null;
 
-    /** @var list<Amenity> */
+    /** @var list<Amenity|int> */
     #[ORM\Column(type: 'json')]
     private array $amenities;
 
@@ -52,17 +52,17 @@ class Appartment extends Entity
     private Address $address;
 
     /**
-     * @param Amenity[] $amenities
+     * @param list<Amenity|int> $amenities
      */
-    public function __construct(int $id, string $name, ?string $description, Money $price, Money $cleaningFee, ?DateTimeImmutable $lastBookedOnUtc, array $amenities, Address $address)
+    public function __construct(string $name, ?string $description, Money $price, Money $cleaningFee, ?DateTimeImmutable $lastBookedOnUtc, array $amenities, Address $address)
     {
-        parent::__construct($id);
+        parent::__construct();
         $this->name = $name;
         $this->description = $description;
         $this->price = $price;
         $this->cleaningFee = $cleaningFee;
         $this->lastBookedOnUtc = $lastBookedOnUtc;
-        $this->amenities = $amenities;
+        $this->amenities = $this->normalizeAmenities($amenities);
         $this->address = $address;
         $this->setTimestampsToNow();
     }
@@ -70,13 +70,13 @@ class Appartment extends Entity
     public function getId(): int
     {
         if (!isset($this->id)) {
-            throw Exception::NonPersistedEntityException();
+            throw NonPersistedEntityException::NonPersistedEntityException();
         }
 
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
@@ -141,15 +141,15 @@ class Appartment extends Entity
      */
     public function getAmenities(): array
     {
-        return $this->amenities;
+        return $this->normalizeAmenities($this->amenities);
     }
 
     /**
-     * @param list<Amenity> $amenities
+     * @param list<Amenity|int> $amenities
      */
     public function setAmenities(array $amenities): static
     {
-        $this->amenities = $amenities;
+        $this->amenities = $this->normalizeAmenities($amenities);
 
         return $this;
     }
@@ -164,5 +164,18 @@ class Appartment extends Entity
         $this->address = $address;
 
         return $this;
+    }
+
+    /**
+     * @param list<Amenity|int> $amenities
+     *
+     * @return list<Amenity>
+     */
+    private function normalizeAmenities(array $amenities): array
+    {
+        return array_map(
+            static fn (Amenity|int $amenity): Amenity => $amenity instanceof Amenity ? $amenity : Amenity::from($amenity),
+            $amenities,
+        );
     }
 }

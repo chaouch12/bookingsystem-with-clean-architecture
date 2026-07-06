@@ -6,7 +6,7 @@ namespace App\Common\Doctrine;
 
 use RuntimeException;
 
-class Exception
+class NonPersistedEntityException
 {
     public static function NonPersistedEntityException(): RuntimeException
     {

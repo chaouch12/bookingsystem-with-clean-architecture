@@ -11,9 +11,9 @@ use Symfony\Component\Routing\Attribute\Route;
 final class HealthController extends AbstractController
 {
     #[Route('/api/health', name: 'api_health', methods: ['GET'])]
-    public function __invoke(): JsonResponse
+    public function health(): JsonResponse
     {
-        return $this->json([ // #
+        return $this->json([
             'status' => 'ok',
             'service' => 'bookingSystem-clean-architecture',
             'php' => PHP_VERSION,
