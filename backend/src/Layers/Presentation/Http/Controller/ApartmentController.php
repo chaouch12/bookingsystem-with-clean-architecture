@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\src\Layers\Presentation\Http\Controller;
+namespace App\Layers\Presentation\Http\Controller;
 
 use App\Layers\Domain\Appartment\Entity\Appartment;
 use App\Layers\Domain\Appartment\Entity\Embeddable\Address;
 use App\Layers\Domain\Appartment\Enum\Amenity;
 use App\Layers\Domain\Appartment\Enum\Currency;
 use App\Layers\Domain\Appartment\Money;
-use App\src\Layers\Domain\Appartment\Repo\AppartmentRepository;
-use App\src\Layers\Presentation\Http\Controller\Request\CreateApartmentRequest;
+use App\Layers\Domain\Appartment\Repo\AppartmentRepository;
+use App\Layers\Presentation\Http\Controller\Request\CreateApartmentRequest;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
