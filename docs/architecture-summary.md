@@ -133,8 +133,9 @@ Read side should avoid loading full aggregates when not needed.
 
 Preferred approach:
 
-- DBAL/raw SQL directly in a query handler for small/simple read models
-- dedicated read repository when query logic becomes non-trivial
+- dedicated read repository for read-model access
+- DBAL QueryBuilder as the default way to express read-model queries
+- raw SQL only when QueryBuilder becomes a poor fit
 
 Avoid:
 

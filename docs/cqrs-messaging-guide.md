@@ -106,7 +106,7 @@ Typical responsibilities:
 2. shape the response model
 3. return result wrapper with data or failure error
 
-For this project, query handlers may read directly through DBAL or through a dedicated read repository when the response shape is flat and does not require aggregate behavior.
+For this project, query handlers should prefer dedicated read repositories when the response shape is flat and does not require aggregate behavior. Those read repositories should prefer DBAL QueryBuilder by default.
 
 ### What a query handler should return
 
@@ -169,19 +169,20 @@ Controller -> Query -> QueryHandler -> Read Query/Repository -> DTO/View -> Resp
 In this codebase:
 
 - command side should use aggregate repositories
-- query side may use DBAL/raw SQL directly
-- if query logic grows, introduce dedicated read repositories
+- query side should prefer dedicated read repositories
+- read repositories should prefer DBAL QueryBuilder by default
+- raw SQL should be reserved for cases where QueryBuilder becomes awkward or limiting
 
 Reason:
 
 - read responses are often flat DTOs
 - aggregate hydration is unnecessary on the query side
-- joins/projections/filtering are easier to express directly for reads
+- joins/projections/filtering still belong on the read side, but should usually be expressed through QueryBuilder first
 
 So the preferred progression is:
 
-1. simple query handler with DBAL
-2. dedicated read repository if SQL grows
+1. dedicated read repository with QueryBuilder
+2. use raw SQL only when the query clearly outgrows QueryBuilder
 3. keep aggregate repositories focused on write-side loading/saving
 
 ## Layer Placement

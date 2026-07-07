@@ -32,4 +32,5 @@ Doctrine entities in this project are domain aggregates and should be modeled wi
 - if lifecycle timestamps/statuses are added in entity, update migration accordingly
 - use repository queries for overlap/existence checks that require DB access
 - use Doctrine aggregate repositories primarily on the write side
-- prefer DBAL/raw SQL or dedicated read repositories on the query side when returning flat DTOs
+- prefer dedicated read repositories on the query side when returning flat DTOs
+- inside read repositories, prefer DBAL QueryBuilder over raw SQL by default

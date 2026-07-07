@@ -22,7 +22,9 @@ Use CQRS-style messaging conventions in the application layer.
 - Name them `*Query`.
 - Handle them in `*QueryHandler`.
 - Queries should return read DTOs, lists, or projections.
-- Query handlers may use DBAL/raw SQL or dedicated read repositories for flat response models.
+- Query handlers should prefer dedicated read repositories for flat response models once query access is more than trivial.
+- In read repositories, prefer DBAL QueryBuilder over raw SQL strings by default.
+- Use raw SQL only when QueryBuilder becomes materially worse for the query shape or database-specific optimization.
 - Do not force query handlers through aggregate repositories when the use case only needs a flat read model.
 
 ## Handler Rules
@@ -41,4 +43,5 @@ Use CQRS-style messaging conventions in the application layer.
 - Command side should use aggregate repositories.
 - Query side should prefer read-optimized access.
 - If query complexity grows, introduce dedicated read repositories instead of reusing aggregate repositories blindly.
+- Keep SQL construction in read repositories, not in query handlers.
 - Do not hydrate full Doctrine aggregates on query side just to flatten them into response DTOs.

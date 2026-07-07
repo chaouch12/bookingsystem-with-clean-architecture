@@ -6,19 +6,18 @@ namespace App\Tests\Layers\Application\Apartments\SearchApartments;
 
 use App\Layers\Application\Apartments\SearchApartments\SearchApartmentQuery;
 use App\Layers\Application\Apartments\SearchApartments\SearchApartmentQueryHandler;
+use App\Layers\Application\Apartments\SearchApartments\SearchApartmentReadRepository;
 use App\Layers\Application\Apartments\SearchApartments\SearchApartmentResponse;
-use Doctrine\DBAL\ArrayParameterType;
-use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\TestCase;
 
 final class SearchApartmentQueryHandlerTest extends TestCase
 {
     public function testItReturnsEmptyListWhenDateRangeIsInvalid(): void
     {
-        $connection = $this->createMock(Connection::class);
-        $connection->expects(self::never())->method('fetchAllAssociative');
+        $readRepository = $this->createMock(SearchApartmentReadRepository::class);
+        $readRepository->expects(self::never())->method('searchAvailable');
 
-        $result = (new SearchApartmentQueryHandler($connection))->handle(
+        $result = (new SearchApartmentQueryHandler($readRepository))->handle(
             new SearchApartmentQuery(
                 new \DateTimeImmutable('2026-08-05'),
                 new \DateTimeImmutable('2026-08-01'),
@@ -31,38 +30,31 @@ final class SearchApartmentQueryHandlerTest extends TestCase
 
     public function testItReturnsAvailableApartmentsAsFlatResponses(): void
     {
-        $connection = $this->createMock(Connection::class);
-        $connection
+        $readRepository = $this->createMock(SearchApartmentReadRepository::class);
+        $readRepository
             ->expects(self::once())
-            ->method('fetchAllAssociative')
+            ->method('searchAvailable')
             ->with(
-                self::stringContains('FROM appartment AS a'),
-                [
-                    'startDate' => '2026-08-01',
-                    'endDate' => '2026-08-05',
-                    'activeBookingStatuses' => ['reserved', 'confirmed'],
-                ],
-                [
-                    'activeBookingStatuses' => ArrayParameterType::STRING,
-                ],
+                new \DateTimeImmutable('2026-08-01'),
+                new \DateTimeImmutable('2026-08-05'),
             )
             ->willReturn([
-                [
-                    'id' => 10,
-                    'name' => 'Mountain Loft',
-                    'description' => 'Nice stay',
-                    'price_amount' => '100.00',
-                    'price_currency' => 'EUR',
-                    'cleaning_fee_amount' => '20.00',
-                    'cleaning_fee_currency' => 'EUR',
-                    'address_street' => 'Main Street',
-                    'address_street_number' => '1',
-                    'address_zipcode' => '12345',
-                    'address_city' => 'Berlin',
-                ],
+                new SearchApartmentResponse(
+                    10,
+                    'Mountain Loft',
+                    'Nice stay',
+                    '100.00',
+                    'EUR',
+                    '20.00',
+                    'EUR',
+                    'Main Street',
+                    '1',
+                    '12345',
+                    'Berlin',
+                ),
             ]);
 
-        $result = (new SearchApartmentQueryHandler($connection))->handle(
+        $result = (new SearchApartmentQueryHandler($readRepository))->handle(
             new SearchApartmentQuery(
                 new \DateTimeImmutable('2026-08-01'),
                 new \DateTimeImmutable('2026-08-05'),
