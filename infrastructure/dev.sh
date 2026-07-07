@@ -5,12 +5,16 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INFRA_DIR="${ROOT_DIR}/infrastructure"
 BACKEND_DIR="${ROOT_DIR}/backend"
 
-if [[ -f "${ROOT_DIR}/.env" ]]; then
-  set -a
-  # shellcheck disable=SC1091
-  source "${ROOT_DIR}/.env"
-  set +a
-fi
+load_env() {
+  if [[ -f "${ROOT_DIR}/.env" ]]; then
+    set -a
+    # shellcheck disable=SC1091
+    source "${ROOT_DIR}/.env"
+    set +a
+  fi
+}
+
+load_env
 
 COMPOSE_FILE="${INFRA_DIR}/docker-compose.yml"
 ENV_FILE="${ROOT_DIR}/.env"
@@ -24,6 +28,7 @@ ensure_env() {
   if [[ ! -f "${ROOT_DIR}/.env" ]]; then
     log "Creating .env from .env.example"
     cp "${ROOT_DIR}/.env.example" "${ROOT_DIR}/.env"
+    load_env
   fi
 
   if [[ ! -f "${BACKEND_DIR}/.env.local" ]]; then
@@ -133,6 +138,8 @@ cmd_status() {
   echo "  Mailpit UI:    http://localhost:${MAILPIT_UI_PORT:-8025}"
   echo "  MySQL:         localhost:${MYSQL_PORT:-3306}"
   echo "  Redis:         localhost:${REDIS_PORT:-6379}"
+  echo "  OpenSearch:    http://localhost:${OPENSEARCH_PORT:-9201}"
+  echo "  OpenSearch UI: http://localhost:${OPENSEARCH_DASHBOARDS_PORT:-5602}"
   echo ""
   "${DC[@]}" ps
 }
