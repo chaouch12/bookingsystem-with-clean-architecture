@@ -1,5 +1,0 @@
-# Domain layer
-
-Pure business rules: entities, value objects, domain events, repository interfaces.
-
-No Symfony, Doctrine, or HTTP dependencies in this layer.
