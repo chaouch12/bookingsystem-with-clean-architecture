@@ -4,26 +4,43 @@ declare(strict_types=1);
 
 namespace App\Layers\Application\Booking\GetBooking;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
 /**
  * Flat read model for booking queries.
  */
 final readonly class BookingResponse
 {
     public function __construct(
+        #[Assert\Positive]
         public int $id,
+        #[Assert\Positive]
         public int $appartmentId,
+        #[Assert\Positive]
         public int $guestUserId,
+        #[Assert\NotBlank]
         public string $status,
+        #[Assert\NotBlank]
         public string $priceForPeriodAmount,
+        #[Assert\NotBlank]
         public string $priceForPeriodCurrency,
+        #[Assert\NotBlank]
         public string $cleaningFeeAmount,
+        #[Assert\NotBlank]
         public string $cleaningFeeCurrency,
+        #[Assert\NotBlank]
         public string $amenitiesUpChargeAmount,
+        #[Assert\NotBlank]
         public string $amenitiesUpChargeCurrency,
+        #[Assert\NotBlank]
         public string $totalPriceAmount,
+        #[Assert\NotBlank]
         public string $totalPriceCurrency,
+        #[Assert\NotBlank]
         public string $checkIn,
+        #[Assert\NotBlank]
         public string $checkOut,
+        #[Assert\Positive]
         public int $guestCount,
         public ?string $createdAt,
         public ?string $confirmedOnUtc,

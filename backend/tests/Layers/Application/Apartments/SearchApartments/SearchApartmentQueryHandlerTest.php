@@ -8,24 +8,31 @@ use App\Layers\Application\Apartments\SearchApartments\SearchApartmentQuery;
 use App\Layers\Application\Apartments\SearchApartments\SearchApartmentQueryHandler;
 use App\Layers\Application\Apartments\SearchApartments\SearchApartmentReadRepository;
 use App\Layers\Application\Apartments\SearchApartments\SearchApartmentResponse;
+use App\Layers\Application\Shared\Validation\MessageValidator;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Validator\Exception\ValidationFailedException;
+use Symfony\Component\Validator\Validation;
 
 final class SearchApartmentQueryHandlerTest extends TestCase
 {
-    public function testItReturnsEmptyListWhenDateRangeIsInvalid(): void
+    public function testItRejectsInvalidDateRangeBeforeQueryingReadRepository(): void
     {
         $readRepository = $this->createMock(SearchApartmentReadRepository::class);
         $readRepository->expects(self::never())->method('searchAvailable');
 
-        $result = (new SearchApartmentQueryHandler($readRepository))->handle(
+        $handler = new SearchApartmentQueryHandler(
+            $readRepository,
+            new MessageValidator(Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator()),
+        );
+
+        $this->expectException(ValidationFailedException::class);
+
+        $handler->handle(
             new SearchApartmentQuery(
                 new \DateTimeImmutable('2026-08-05'),
                 new \DateTimeImmutable('2026-08-01'),
             ),
         );
-
-        self::assertTrue($result->isSuccess);
-        self::assertSame([], $result->value());
     }
 
     public function testItReturnsAvailableApartmentsAsFlatResponses(): void
@@ -54,7 +61,10 @@ final class SearchApartmentQueryHandlerTest extends TestCase
                 ),
             ]);
 
-        $result = (new SearchApartmentQueryHandler($readRepository))->handle(
+        $result = (new SearchApartmentQueryHandler(
+            $readRepository,
+            new MessageValidator(Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator()),
+        ))->handle(
             new SearchApartmentQuery(
                 new \DateTimeImmutable('2026-08-01'),
                 new \DateTimeImmutable('2026-08-05'),

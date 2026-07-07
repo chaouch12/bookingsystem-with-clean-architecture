@@ -8,8 +8,11 @@ use App\Layers\Application\Booking\GetBooking\BookingResponse;
 use App\Layers\Application\Booking\GetBooking\GetBookingQuery;
 use App\Layers\Application\Booking\GetBooking\GetBookingQueryHandler;
 use App\Layers\Application\Booking\GetBooking\GetBookingReadRepository;
+use App\Layers\Application\Shared\Validation\MessageValidator;
 use App\Layers\Domain\Booking\BookingErrors;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Validator\Exception\ValidationFailedException;
+use Symfony\Component\Validator\Validation;
 
 final class GetBookingQueryHandlerTest extends TestCase
 {
@@ -42,7 +45,10 @@ final class GetBookingQueryHandlerTest extends TestCase
                 null,
             ));
 
-        $result = (new GetBookingQueryHandler($readRepository))->handle(new GetBookingQuery(5));
+        $result = (new GetBookingQueryHandler(
+            $readRepository,
+            new MessageValidator(Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator()),
+        ))->handle(new GetBookingQuery(5));
 
         self::assertTrue($result->isSuccess);
         self::assertInstanceOf(BookingResponse::class, $result->value());
@@ -60,9 +66,27 @@ final class GetBookingQueryHandlerTest extends TestCase
             ->with(999)
             ->willReturn(null);
 
-        $result = (new GetBookingQueryHandler($readRepository))->handle(new GetBookingQuery(999));
+        $result = (new GetBookingQueryHandler(
+            $readRepository,
+            new MessageValidator(Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator()),
+        ))->handle(new GetBookingQuery(999));
 
         self::assertTrue($result->isFailure());
         self::assertSame(BookingErrors::notFound()->code, $result->error->code);
+    }
+
+    public function testItRejectsInvalidBookingIdBeforeCallingReadRepository(): void
+    {
+        $readRepository = $this->createMock(GetBookingReadRepository::class);
+        $readRepository->expects(self::never())->method('findById');
+
+        $handler = new GetBookingQueryHandler(
+            $readRepository,
+            new MessageValidator(Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator()),
+        );
+
+        $this->expectException(ValidationFailedException::class);
+
+        $handler->handle(new GetBookingQuery(0));
     }
 }
