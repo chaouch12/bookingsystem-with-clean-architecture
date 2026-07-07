@@ -6,6 +6,7 @@ namespace App\Layers\Application\Booking\CreateBooking;
 
 use App\Layers\Application\Shared\Event\DomainEventDispatcher;
 use App\Layers\Application\Shared\Messaging\CommandHandler;
+use App\Layers\Application\Shared\Validation\MessageValidator;
 use App\Layers\Domain\Appartment\AppartmentErrors;
 use App\Layers\Domain\Appartment\Repo\AppartmentRepository;
 use App\Layers\Domain\Booking\BookingErrors;
@@ -27,6 +28,7 @@ final readonly class CreateBookingCommandHandler implements CommandHandler
         private BookingRepository $bookingRepository,
         private BookingPricingService $bookingPricingService,
         private DomainEventDispatcher $domainEventDispatcher,
+        private MessageValidator $messageValidator,
     ) {
     }
 
@@ -35,6 +37,8 @@ final readonly class CreateBookingCommandHandler implements CommandHandler
      */
     public function handle(object $command): ResultWithValue
     {
+        $this->messageValidator->validate($command);
+
         $appartment = $this->appartmentRepository->find($command->appartmentId);
 
         if ($appartment === null) {

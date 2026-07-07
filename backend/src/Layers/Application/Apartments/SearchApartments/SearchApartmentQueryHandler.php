@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Layers\Application\Apartments\SearchApartments;
 
 use App\Layers\Application\Shared\Messaging\QueryHandler;
+use App\Layers\Application\Shared\Validation\MessageValidator;
 use App\Layers\Domain\Shared\ResultWithValue;
 
 /**
@@ -14,6 +15,7 @@ final readonly class SearchApartmentQueryHandler implements QueryHandler
 {
     public function __construct(
         private SearchApartmentReadRepository $searchApartmentReadRepository,
+        private MessageValidator $messageValidator,
     ) {
     }
 
@@ -22,9 +24,7 @@ final readonly class SearchApartmentQueryHandler implements QueryHandler
      */
     public function handle(object $query): ResultWithValue
     {
-        if ($query->startDate > $query->endDate) {
-            return ResultWithValue::successWithValue($this->emptyResponseList());
-        }
+        $this->messageValidator->validate($query);
 
         return ResultWithValue::successWithValue(
             $this->searchApartmentReadRepository->searchAvailable(
@@ -32,13 +32,5 @@ final readonly class SearchApartmentQueryHandler implements QueryHandler
                 $query->endDate,
             ),
         );
-    }
-
-    /**
-     * @return list<SearchApartmentResponse>
-     */
-    private function emptyResponseList(): array
-    {
-        return [];
     }
 }

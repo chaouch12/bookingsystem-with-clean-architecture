@@ -4,19 +4,31 @@ declare(strict_types=1);
 
 namespace App\Layers\Application\Apartments\SearchApartments;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
 final readonly class SearchApartmentResponse
 {
     public function __construct(
+        #[Assert\Positive]
         public int $id,
+        #[Assert\NotBlank]
         public string $name,
         public ?string $description,
+        #[Assert\NotBlank]
         public string $priceAmount,
+        #[Assert\NotBlank]
         public string $priceCurrency,
+        #[Assert\NotBlank]
         public string $cleaningFeeAmount,
+        #[Assert\NotBlank]
         public string $cleaningFeeCurrency,
+        #[Assert\NotBlank]
         public string $street,
+        #[Assert\NotBlank]
         public string $streetNumber,
+        #[Assert\NotBlank]
         public string $zipcode,
+        #[Assert\NotBlank]
         public string $city,
     ) {
     }
