@@ -12,6 +12,11 @@ use App\Layers\Domain\Shared\Event\DomainEvent;
 interface DomainEventHandler
 {
     /**
+     * @return class-string<TEvent>
+     */
+    public static function listensTo(): string;
+
+    /**
      * @param TEvent $event
      */
     public function handle(DomainEvent $event): void;

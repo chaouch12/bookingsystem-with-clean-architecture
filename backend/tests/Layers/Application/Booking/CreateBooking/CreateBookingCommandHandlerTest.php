@@ -6,7 +6,7 @@ namespace App\Tests\Layers\Application\Booking\CreateBooking;
 
 use App\Layers\Application\Booking\CreateBooking\CreateBookingCommand;
 use App\Layers\Application\Booking\CreateBooking\CreateBookingCommandHandler;
-use App\Layers\Application\Shared\Event\DomainEventDispatcher;
+use App\Layers\Application\Shared\Persistence\TransactionManager;
 use App\Layers\Application\Shared\Validation\MessageValidator;
 use App\Layers\Domain\Appartment\Repo\AppartmentRepository;
 use App\Layers\Domain\Booking\Repository\BookingRepository;
@@ -31,14 +31,15 @@ final class CreateBookingCommandHandlerTest extends TestCase
 
         $bookingRepository = new BookingRepository($this->createStub(ManagerRegistry::class));
         $bookingPricingService = new BookingPricingService();
-        $domainEventDispatcher = $this->createStub(DomainEventDispatcher::class);
+        $transactionManager = $this->createMock(TransactionManager::class);
+        $transactionManager->expects(self::never())->method('flushAndPublish');
 
         $handler = new CreateBookingCommandHandler(
             $appartmentRepository,
             $userRepository,
             $bookingRepository,
             $bookingPricingService,
-            $domainEventDispatcher,
+            $transactionManager,
             new MessageValidator(
                 Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator(),
             ),

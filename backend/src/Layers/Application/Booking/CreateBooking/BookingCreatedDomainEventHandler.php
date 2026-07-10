@@ -16,6 +16,11 @@ use App\Layers\Domain\Users\Repository\UserRepository;
  */
 final readonly class BookingCreatedDomainEventHandler implements DomainEventHandler
 {
+    public static function listensTo(): string
+    {
+        return BookingCreated::class;
+    }
+
     public function __construct(
         private UserRepository $userRepository,
         private AppartmentRepository $appartmentRepository,

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Layers\Application\Booking\CreateBooking;
 
-use App\Layers\Application\Shared\Event\DomainEventDispatcher;
 use App\Layers\Application\Shared\Messaging\CommandHandler;
+use App\Layers\Application\Shared\Persistence\TransactionManager;
 use App\Layers\Application\Shared\Validation\MessageValidator;
 use App\Layers\Domain\Appartment\AppartmentErrors;
 use App\Layers\Domain\Appartment\Repo\AppartmentRepository;
@@ -27,7 +27,7 @@ final readonly class CreateBookingCommandHandler implements CommandHandler
         private UserRepository $userRepository,
         private BookingRepository $bookingRepository,
         private BookingPricingService $bookingPricingService,
-        private DomainEventDispatcher $domainEventDispatcher,
+        private TransactionManager $transactionManager,
         private MessageValidator $messageValidator,
     ) {
     }
@@ -68,8 +68,8 @@ final readonly class CreateBookingCommandHandler implements CommandHandler
             $pricingDetails->totalPrice,
         );
 
-        $this->bookingRepository->save($booking, true);
-        $this->domainEventDispatcher->dispatch(...$booking->releaseDomainEvents());
+        $this->bookingRepository->save($booking, false);
+        $this->transactionManager->flushAndPublish();
 
         return ResultWithValue::successWithValue($booking->getId());
     }
