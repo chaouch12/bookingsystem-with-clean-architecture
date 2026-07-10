@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Layers\Presentation\Http\Controller\Request;
+namespace App\Layers\Presentation\Crm\Apartment\Models\Payload;
 
 use App\Layers\Domain\Appartment\Enum\Currency;
 use DateTimeInterface;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[OA\Schema(schema: 'CreateApartmentRequest')]
-final class CreateApartmentRequest
+#[OA\Schema(schema: 'CreateApartmentPayload')]
+class CreateApartmentPayload
 {
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max: 64)]

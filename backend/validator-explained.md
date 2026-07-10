@@ -2,10 +2,15 @@
 
 ## Version
 
-- Current version: `1.0`
+- Current version: `1.1`
 - Last updated: `2026-07-10`
 
 ## Change Log
+
+### 1.1
+
+- added validation-backed apartment application commands and queries
+- apartment create/update/delete/get/list handlers now validate application messages at handler entry
 
 ### 1.0
 
@@ -25,6 +30,11 @@ Implemented pieces:
 
 Current handlers using it:
 
+- `CreateApartmentCommandHandler`
+- `UpdateApartmentCommandHandler`
+- `DeleteApartmentCommandHandler`
+- `GetApartmentQueryHandler`
+- `ListApartmentsQueryHandler`
 - `CreateBookingCommandHandler`
 - `GetBookingQueryHandler`
 - `SearchApartmentQueryHandler`
@@ -50,6 +60,20 @@ That keeps validation centralized without adding infrastructure the project does
   - `guestUserId` must be positive
   - `period` must not be null
   - `guestCount` must not be null
+
+- `CreateApartmentCommand`
+  - required apartment fields must be present
+  - basic string/length rules are enforced before application logic runs
+
+- `UpdateApartmentCommand`
+  - `id` must be positive
+  - required apartment fields must be present
+
+- `DeleteApartmentCommand`
+  - `id` must be positive
+
+- `GetApartmentQuery`
+  - `id` must be positive
 
 - `GetBookingQuery`
   - `bookingId` must be positive

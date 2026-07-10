@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Layers\Presentation\Http\Controller\Response;
+namespace App\Layers\Presentation\Crm\Apartment\Models\Response;
 
 use OpenApi\Attributes as OA;
 

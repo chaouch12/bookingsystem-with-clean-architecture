@@ -2,10 +2,17 @@
 
 ## Version
 
-- Current version: `1.1`
+- Current version: `2.0`
 - Last updated: `2026-07-10`
 
 ## Change Log
+
+### 2.0
+
+- moved documented controllers and models to the slice-first `Presentation` structure
+- request payloads now live under `Presentation/Crm/Apartment/Models/Payload`
+- response models now live under `Presentation/Crm/Apartment/Models/Response` and `Presentation/Internal/Health/Models/Response`
+- Swagger docs now describe the new presentation slice layout
 
 ### 1.1
 
@@ -63,7 +70,7 @@ Request DTOs stay in the controller request namespace and can be reused for docs
 
 Current example:
 
-- `CreateApartmentRequest`
+- `CreateApartmentPayload`
 
 ### Response model convention
 
@@ -128,8 +135,8 @@ Generated OpenAPI JSON:
 
 This setup currently covers:
 
-- `HealthController`
-- `ApartmentController`
+- `Presentation/Internal/Health/Controller/HealthController`
+- `Presentation/Crm/Apartment/Controller/*`
 
 It is a phase-1 setup, not the final API documentation design.
 
