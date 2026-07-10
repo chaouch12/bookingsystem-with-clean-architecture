@@ -1,5 +1,18 @@
 # Validator Explained
 
+## Version
+
+- Current version: `1.0`
+- Last updated: `2026-07-10`
+
+## Change Log
+
+### 1.0
+
+- introduced Symfony Validator-based validation for current commands, queries, and selected DTOs
+- added `MessageValidator`
+- validated messages at handler entry
+
 ## What was added
 
 The application now uses Symfony Validator for the current command, query, and DTO surface.
@@ -153,3 +166,14 @@ Do not move domain invariants into Symfony Validator only.
 - `src/Layers/Application/Booking/GetBooking/GetBookingQuery.php`
 - `src/Layers/Application/Apartments/SearchApartments/SearchApartmentQuery.php`
 - handler tests under `tests/Layers/Application/*`
+
+## Update rule
+
+If the validation approach changes later, update this file instead of creating a separate competing note.
+
+Examples:
+
+- move validation to a message bus pipeline
+- change exception-to-error mapping
+- remove DTO-level validation
+- add validation groups or custom constraint strategy

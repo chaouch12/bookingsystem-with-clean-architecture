@@ -1,70 +1,70 @@
 # Domain Events Decision
 
+## Version
+
+- Current version: `2.0`
+- Last updated: `2026-07-10`
+
+## Change Log
+
+### 2.0
+
+- moved from manual handler-level dispatch to centralized `flushAndPublish()` transaction handling
+- added Doctrine-based domain event extraction from scheduled entities
+- added central event publication through `DomainEventDispatcher`
+- added explicit domain event handler registration via service tags
+
+### 1.0
+
+- kept manual handler-level dispatch as an explicit temporary approach
+
 ## Decision
 
-For now, domain events stay published manually from application handlers after persistence.
+Domain events are now published through a centralized persistence flow.
 
 Current pattern:
 
 1. aggregate records domain events internally
-2. handler saves the aggregate
-3. handler calls `releaseDomainEvents()`
-4. handler passes the events to `DomainEventDispatcher`
+2. application handler saves the aggregate without flushing events manually
+3. `TransactionManager::flushAndPublish()` extracts domain events from scheduled Doctrine entities
+4. Doctrine flush is executed
+5. extracted events are published through `DomainEventDispatcher`
 
 Example in the current codebase:
 
 - `Booking` records events through `RecordsDomainEvents`
-- `CreateBookingCommandHandler` saves the booking and then dispatches released events
+- `CreateBookingCommandHandler` saves the booking and then calls `flushAndPublish()`
 
-## Why we are keeping it like this for now
+## Why we changed it
 
-We discussed moving to the more centralized approach shown in the screenshot:
-
-- persist changes
-- inspect tracked entities during/after flush
-- collect domain events automatically
-- publish them from one infrastructure place
-
-That is a good direction, but we are intentionally not doing it yet.
+We moved to the centralized approach shown in the screenshot because the save-then-dispatch behavior had become a real architectural concern and the repo already had the right primitives in place.
 
 Reasons:
 
-### 1. The current codebase is still small
+### 1. Publication responsibility belonged at the persistence boundary
 
-There are only a few handlers and only a small number of domain events.
+The save-then-dispatch flow should not be repeated in handlers.
+Centralizing it reduces drift and makes event publication less error-prone.
 
-Manual publication is still easy to follow and does not yet create much duplication.
+### 2. The codebase already had aggregate event recording
 
-### 2. We want the flow to remain explicit
+The domain layer already recorded events through `RecordsDomainEvents`.
+That made the persistence-boundary extraction approach a natural next step.
 
-Right now the event lifecycle is obvious in the application layer:
+### 3. We wanted a Symfony/Doctrine equivalent of the explicit application context pattern
 
-- create/update aggregate
-- save it
-- dispatch released events
+The chosen implementation is the pragmatic Symfony version of:
 
-That is simple to debug while the architecture is still evolving.
+- collect events from tracked entities
+- flush
+- publish centrally
 
-### 3. We do not yet have a transaction/outbox strategy
+### 4. We still wanted explicit control, not hidden Doctrine subscriber magic
 
-If we move event publication into Doctrine flush handling, the next questions become important immediately:
+We did not move to a Doctrine subscriber hook yet.
+Instead, we introduced an explicit `TransactionManager` abstraction with `flushAndPublish()`.
 
-- publish before or after flush?
-- what happens when an event handler fails?
-- should event handlers be synchronous or async?
-- do we need an outbox for reliability?
-
-We have not made those decisions yet, so centralizing publication now would introduce infrastructure decisions too early.
-
-### 4. We want to avoid half-finished infrastructure
-
-Doing automatic dispatch through Doctrine without a clear reliability and failure model can leave the project in an awkward middle state:
-
-- more hidden behavior
-- more complex testing
-- unclear transaction boundaries
-
-For the current project stage, that complexity is not justified yet.
+That keeps the flow centralized without hiding it too deeply.
 
 ## What is already in place
 
@@ -73,54 +73,54 @@ These pieces already support the future migration:
 - `src/Layers/Domain/Shared/Event/DomainEvent.php`
 - `src/Layers/Domain/Shared/Event/RecordsDomainEvents.php`
 - `src/Layers/Application/Shared/Event/DomainEventDispatcher.php`
+- `src/Layers/Application/Shared/Persistence/TransactionManager.php`
 - `src/Layers/Infrastructure/Event/InMemoryDomainEventDispatcher.php`
+- `src/Layers/Infrastructure/Event/DomainEventsPublisher.php`
+- `src/Layers/Infrastructure/Persistence/DoctrineDomainEventsExtractor.php`
+- `src/Layers/Infrastructure/Persistence/DoctrineTransactionManager.php`
 
-This means the domain model already records events correctly.
-Only the publication mechanism is still manual.
+This means the domain model records events internally and infrastructure now owns the central publish step.
 
 ## Tradeoff we are accepting
 
 The current approach means:
 
-- publication responsibility is still in handlers
-- handlers must remember to dispatch released events
-- duplicated save-then-dispatch flow may grow over time
+- extraction depends on Doctrine scheduled entity state
+- publication is still in-process and synchronous
+- there is no outbox or durable retry model yet
 
-We accept this for now because the explicitness is currently more valuable than the added infrastructure.
+We accept this because it gives us centralized publication now without forcing an outbox or Messenger design prematurely.
 
 ## Follow-up plan
 
-When the number of handlers/events grows, revisit this and move to centralized publication.
-
-Target direction:
+Current follow-up direction:
 
 1. keep recording events inside aggregates only
-2. collect domain events from tracked Doctrine entities during or after flush
-3. clear them once collected
-4. publish them centrally through one infrastructure adapter
-5. later decide whether to route them through Messenger and/or an outbox
+2. keep `flushAndPublish()` as the application-facing boundary
+3. decide whether event handlers should move to Messenger
+4. decide whether external/integration events require an outbox
+5. separate domain events from integration events once external delivery becomes relevant
 
 ## Trigger to revisit this
 
 Revisit the design when one or more of these become true:
 
-- several handlers repeat the same save-then-dispatch logic
-- event handling becomes more important to the application flow
+- event handlers need async delivery
 - external integrations are added
-- async or reliable delivery becomes necessary
-- we introduce a formal transaction boundary around application use cases
+- reliable delivery becomes necessary
+- multiple bounded contexts start consuming events differently
+- we need retry, deduplication, or delivery auditing
 
 ## Short version
 
-We are keeping manual handler-level domain event publication for now because:
+We moved domain event publication to a centralized `flushAndPublish()` flow because:
 
-- it is explicit
-- the codebase is still small
-- the reliability model is not decided yet
-- centralizing it now would add infrastructure earlier than needed
+- it removes handler-level duplication
+- it matches the aggregate-event pattern already present in the domain
+- it gives us a clear Symfony/Doctrine equivalent of tracked-entity event publication
+- it still keeps control explicit through a transaction manager abstraction
 
-The future direction is still:
+The next likely evolution is:
 
-- Doctrine-based collection after persistence
-- centralized dispatch
-- possible Messenger/outbox integration later
+- Messenger-backed dispatch if async handling becomes useful
+- outbox/integration event separation if reliability requirements increase

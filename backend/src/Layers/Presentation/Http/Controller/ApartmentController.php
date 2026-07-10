@@ -11,8 +11,11 @@ use App\Layers\Domain\Appartment\Enum\Currency;
 use App\Layers\Domain\Appartment\Money;
 use App\Layers\Domain\Appartment\Repo\AppartmentRepository;
 use App\Layers\Presentation\Http\Controller\Request\CreateApartmentRequest;
+use App\Layers\Presentation\Http\Controller\Response\AddressResponse;
+use App\Layers\Presentation\Http\Controller\Response\AmenityResponse;
 use App\Layers\Presentation\Http\Controller\Response\ApartmentResponse;
 use App\Layers\Presentation\Http\Controller\Response\ApiMessageResponse;
+use App\Layers\Presentation\Http\Controller\Response\MoneyResponse;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Nelmio\ApiDocBundle\Attribute\Model;
@@ -23,6 +26,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 
+#[OA\Tag(name: 'Apartment')]
 final class ApartmentController extends AbstractController
 {
     public function __construct(
@@ -41,7 +45,6 @@ final class ApartmentController extends AbstractController
         description: 'Apartment created',
         content: new OA\JsonContent(ref: new Model(type: ApartmentResponse::class))
     )]
-    #[OA\Tag(name: 'Apartment')]
     public function addAppartment(#[MapRequestPayload] CreateApartmentRequest $request): JsonResponse
     {
         $appartment = new Appartment(
@@ -56,7 +59,7 @@ final class ApartmentController extends AbstractController
 
         $this->appartmentRepository->save($appartment, true);
 
-        return $this->json($this->normalizeAppartment($appartment), Response::HTTP_CREATED);
+        return $this->json($this->toApartmentResponse($appartment), Response::HTTP_CREATED);
     }
 
     #[Route('/api/apartment', name: 'api_apartment_list', methods: ['GET'])]
@@ -69,20 +72,19 @@ final class ApartmentController extends AbstractController
             items: new OA\Items(ref: new Model(type: ApartmentResponse::class))
         )
     )]
-    #[OA\Tag(name: 'Apartment')]
     public function listAppartments(): JsonResponse
     {
         return $this->json(
             array_map(
-                fn (Appartment $appartment): array => $this->normalizeAppartment($appartment),
+                fn (Appartment $appartment): ApartmentResponse => $this->toApartmentResponse($appartment),
                 $this->appartmentRepository->findAll(),
             ),
         );
     }
 
     #[Route('/api/apartment/{id}', name: 'api_apartment_show', methods: ['GET'])]
-    #[OA\Get(summary: 'Get apartment', description: 'Returns a single apartment by id.')]
-    #[OA\Parameter(name: 'id', in: 'path', required: true, description: 'Apartment id', schema: new OA\Schema(type: 'integer', minimum: 1))]
+    #[OA\Get(description: 'Returns a single apartment by id.', summary: 'Get apartment')]
+    #[OA\Parameter(name: 'id', description: 'Apartment id', in: 'path', required: true, schema: new OA\Schema(type: 'integer', minimum: 1))]
     #[OA\Response(
         response: 200,
         description: 'Apartment details',
@@ -93,21 +95,20 @@ final class ApartmentController extends AbstractController
         description: 'Apartment not found',
         content: new OA\JsonContent(ref: new Model(type: ApiMessageResponse::class))
     )]
-    #[OA\Tag(name: 'Apartment')]
     public function getAppartment(int $id): JsonResponse
     {
         $appartment = $this->appartmentRepository->find($id);
 
         if ($appartment === null) {
-            return $this->json(['message' => 'Appartment not found.'], Response::HTTP_NOT_FOUND);
+            return $this->json(new ApiMessageResponse('Appartment not found.'), Response::HTTP_NOT_FOUND);
         }
 
-        return $this->json($this->normalizeAppartment($appartment));
+        return $this->json($this->toApartmentResponse($appartment));
     }
 
     #[Route('/api/apartment/{id}', name: 'api_apartment_update', methods: ['PUT'])]
-    #[OA\Put(summary: 'Update apartment', description: 'Updates an existing apartment.')]
-    #[OA\Parameter(name: 'id', in: 'path', required: true, description: 'Apartment id', schema: new OA\Schema(type: 'integer', minimum: 1))]
+    #[OA\Put(description: 'Updates an existing apartment.', summary: 'Update apartment')]
+    #[OA\Parameter(name: 'id', description: 'Apartment id', in: 'path', required: true, schema: new OA\Schema(type: 'integer', minimum: 1))]
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(ref: new Model(type: CreateApartmentRequest::class))
@@ -122,13 +123,12 @@ final class ApartmentController extends AbstractController
         description: 'Apartment not found',
         content: new OA\JsonContent(ref: new Model(type: ApiMessageResponse::class))
     )]
-    #[OA\Tag(name: 'Apartment')]
     public function updateAppartment(int $id, #[MapRequestPayload] CreateApartmentRequest $request): JsonResponse
     {
         $appartment = $this->appartmentRepository->find($id);
 
         if ($appartment === null) {
-            return $this->json(['message' => 'Appartment not found.'], Response::HTTP_NOT_FOUND);
+            return $this->json(new ApiMessageResponse('Appartment not found.'), Response::HTTP_NOT_FOUND);
         }
 
         $appartment
@@ -142,25 +142,24 @@ final class ApartmentController extends AbstractController
 
         $this->appartmentRepository->save($appartment, true);
 
-        return $this->json($this->normalizeAppartment($appartment));
+        return $this->json($this->toApartmentResponse($appartment));
     }
 
     #[Route('/api/apartment/{id}', name: 'api_apartment_delete', methods: ['DELETE'])]
-    #[OA\Delete(summary: 'Delete apartment', description: 'Deletes an apartment by id.')]
-    #[OA\Parameter(name: 'id', in: 'path', required: true, description: 'Apartment id', schema: new OA\Schema(type: 'integer', minimum: 1))]
+    #[OA\Delete(description: 'Deletes an apartment by id.', summary: 'Delete apartment')]
+    #[OA\Parameter(name: 'id', description: 'Apartment id', in: 'path', required: true, schema: new OA\Schema(type: 'integer', minimum: 1))]
     #[OA\Response(response: 204, description: 'Apartment deleted')]
     #[OA\Response(
         response: 404,
         description: 'Apartment not found',
         content: new OA\JsonContent(ref: new Model(type: ApiMessageResponse::class))
     )]
-    #[OA\Tag(name: 'Apartment')]
     public function deleteAppartment(int $id): JsonResponse
     {
         $appartment = $this->appartmentRepository->find($id);
 
         if ($appartment === null) {
-            return $this->json(['message' => 'Appartment not found.'], Response::HTTP_NOT_FOUND);
+            return $this->json(new ApiMessageResponse('Appartment not found.'), Response::HTTP_NOT_FOUND);
         }
 
         $this->appartmentRepository->remove($appartment, true);
@@ -168,40 +167,37 @@ final class ApartmentController extends AbstractController
         return $this->json(null, Response::HTTP_NO_CONTENT);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function normalizeAppartment(Appartment $appartment): array
+    private function toApartmentResponse(Appartment $appartment): ApartmentResponse
     {
         $address = $appartment->getAddress();
 
-        return [
-            'id' => $appartment->getId(),
-            'name' => $appartment->getName(),
-            'description' => $appartment->getDescription(),
-            'price' => [
-                'amount' => $appartment->getPrice()->amount,
-                'currency' => $appartment->getPrice()->currency->value,
-            ],
-            'cleaningFee' => [
-                'amount' => $appartment->getCleaningFee()->amount,
-                'currency' => $appartment->getCleaningFee()->currency->value,
-            ],
-            'lastBookedOnUtc' => $appartment->getLastBookedOnUtc()?->format(DateTimeInterface::ATOM),
-            'amenities' => array_map(
-                static fn (Amenity $amenity): array => [
-                    'name' => $amenity->name,
-                    'value' => $amenity->value,
-                ],
+        return new ApartmentResponse(
+            $appartment->getId(),
+            $appartment->getName(),
+            $appartment->getDescription(),
+            new MoneyResponse(
+                $appartment->getPrice()->amount,
+                $appartment->getPrice()->currency->value,
+            ),
+            new MoneyResponse(
+                $appartment->getCleaningFee()->amount,
+                $appartment->getCleaningFee()->currency->value,
+            ),
+            $appartment->getLastBookedOnUtc()?->format(DateTimeInterface::ATOM),
+            array_map(
+                static fn (Amenity $amenity): AmenityResponse => new AmenityResponse(
+                    $amenity->name,
+                    $amenity->value,
+                ),
                 $appartment->getAmenities(),
             ),
-            'address' => [
-                'street' => $address->street,
-                'streetNumber' => $address->streetNumber,
-                'zipcode' => $address->zipcode,
-                'city' => $address->city,
-                'full' => $address->__toString(),
-            ],
-        ];
+            new AddressResponse(
+                $address->street,
+                $address->streetNumber,
+                $address->zipcode,
+                $address->city,
+                $address->__toString(),
+            ),
+        );
     }
 }

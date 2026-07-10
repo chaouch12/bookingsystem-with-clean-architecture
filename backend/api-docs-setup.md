@@ -1,5 +1,26 @@
 # API Docs Setup
 
+## Version
+
+- Current version: `1.1`
+- Last updated: `2026-07-10`
+
+## Change Log
+
+### 1.1
+
+- aligned runtime controller responses with documented OpenAPI response models
+- controllers now return response DTO objects instead of ad hoc normalized arrays for documented success payloads
+- `HealthController` now returns `HealthResponse`
+- `ApartmentController` now returns `ApartmentResponse` and `ApiMessageResponse`
+
+### 1.0
+
+- introduced NelmioApiDocBundle setup
+- added Swagger UI and OpenAPI JSON routes
+- documented `HealthController` and `ApartmentController`
+- introduced request/response schema classes for API docs
+
 ## Decision
 
 We are using `NelmioApiDocBundle` as the current API documentation setup for Symfony controllers.
@@ -57,7 +78,7 @@ Current examples:
 - `AmenityResponse`
 - `AddressResponse`
 
-These are primarily documentation models for now.
+These are now also the runtime response shapes for the documented controller responses.
 
 ## Why we chose this approach
 
@@ -114,13 +135,11 @@ It is a phase-1 setup, not the final API documentation design.
 
 ## Tradeoffs we are accepting
 
-### 1. Some response classes are docs-first classes
+### 1. Response models are now part of runtime controller output
 
-The response schema classes are mainly there to stabilize documentation shape.
+The documented response schema classes are also used as the actual JSON response objects for the documented endpoints.
 
-Runtime controller responses still return normalized arrays.
-
-That is acceptable for now because it avoids a larger serializer refactor.
+That keeps runtime payloads aligned with the generated OpenAPI contract.
 
 ### 2. Error responses are still simple
 
@@ -136,11 +155,7 @@ If the public API later switches to string enums, this file must be updated.
 
 ## Follow-up decisions to revisit later
 
-### 1. Standard response DTOs at runtime
-
-Decide whether controllers should eventually return dedicated response DTOs instead of arrays.
-
-### 2. Unified error format
+### 1. Unified error format
 
 Define one reusable API error response structure for:
 
@@ -149,7 +164,7 @@ Define one reusable API error response structure for:
 - not found
 - unexpected failures
 
-### 3. Tags and grouping
+### 2. Tags and grouping
 
 As the API grows, decide how to group docs:
 
@@ -157,7 +172,7 @@ As the API grows, decide how to group docs:
 - by bounded context
 - by business capability
 
-### 4. Auth/security docs
+### 3. Auth/security docs
 
 When authentication is added, define security schemes in Nelmio config and apply them consistently to operations.
 
